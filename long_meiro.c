@@ -4,8 +4,6 @@
  * https://trap.jp/post/472/
  */
 
-#define LONG_MEIRO_C
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
