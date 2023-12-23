@@ -82,7 +82,7 @@ int main()
 
     // build and compile our shader zprogram
     // ------------------------------------
-    Shader lightingShader("2.1.basic_lighting.vs", "2.1.basic_lighting.fs");
+    Shader lightingShader("basic_lighting.vs", "basic_lighting.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
