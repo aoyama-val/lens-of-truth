@@ -9,6 +9,8 @@
 #include "learnopengl/shader_m.h"
 #include "learnopengl/camera.h"
 
+#include "long_meiro.h"
+
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -21,7 +23,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), 180.0f);
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -33,28 +35,19 @@ float lastFrame = 0.0f;
 // lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
-const int MAZE_X_LEN = 10;
-const int MAZE_Z_LEN = 10;
-int maze[MAZE_Z_LEN][MAZE_X_LEN];
-
-void initMaze()
-{
-    for (int zi = 0; zi < MAZE_Z_LEN; zi++) {
-        for (int xi = 0; xi < MAZE_X_LEN; xi++) {
-            if (zi == MAZE_Z_LEN - 1 || xi == 0 || xi == MAZE_Z_LEN - 1) {
-                // 外周に壁を配置
-                maze[zi][xi] = 1;
-            } else {
-                double r = rand() / ((double)RAND_MAX + 1);
-                maze[zi][xi] = r < 0.2 ? 1 : 0;
-            }
-        }
-    }
-}
+const int MAZE_WIDTH = 6;
+const int MAZE_HEIGHT = 6;
 
 int main()
 {
-    initMaze();
+    // srand((unsigned)time(NULL));
+
+    int w, h;
+    create_meiro(MAZE_WIDTH, MAZE_HEIGHT, &w, &h);
+    show_meiro(w, h, the_start, the_goal);
+
+    // カメラ初期位置
+    camera.Position = glm::vec3(-1.0f * the_start.x, 0.0f, -1.0f * the_start.y);
 
     // glfw: initialize and configure
     // ------------------------------
@@ -197,13 +190,14 @@ int main()
         lightingShader.setMat4("projection", projection);
         lightingShader.setMat4("view", view);
 
-        for (int zi = 0; zi < MAZE_Z_LEN; zi++)
+        // 壁描画
+        for (int j = 0; j < h; j++)
         {
-            for (int xi = 0; xi < MAZE_X_LEN; xi++)
+            for (int i = 0; i < w; i++)
             {
-                if (maze[zi][xi] == 1) {
+                if (meiro[i][j] == 1) {
                     // world transformation
-                    glm::vec3 modelPos(xi * 1.0f, 0.0f, zi * -1.0f);
+                    glm::vec3 modelPos(i * -1.0f, 0.0f, j * -1.0f);
                     glm::mat4 model = glm::mat4(1.0f);
                     model = glm::translate(model, modelPos);
                     lightingShader.setMat4("model", model);
@@ -214,6 +208,18 @@ int main()
                 }
             }
         }
+
+        // ゴール描画
+        glm::vec3 modelPos(the_goal.x * -1.0f, 0.0f, the_goal.y * -1.0f);
+        modelPos.y = -0.5f;
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, modelPos);
+        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+        lightingShader.setMat4("model", model);
+
+        // render the cube
+        glBindVertexArray(cubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

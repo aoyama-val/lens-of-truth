@@ -1,6 +1,6 @@
 program = ./a.out
 arg =
-srcs = main.cpp glad/glad.c
+srcs = main.cpp glad/glad.c long_meiro.c
 
 .PHONY: all
 all: build run
