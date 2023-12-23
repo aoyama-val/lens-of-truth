@@ -18,6 +18,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 void processInput(GLFWwindow *window);
+void printGLInfo();
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -86,6 +87,8 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    printGLInfo();
 
     // configure global opengl state
     // -----------------------------
@@ -299,4 +302,24 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
+}
+
+void printGLInfo()
+{
+    const GLubyte *glVersion = glGetString(GL_VERSION);
+    const GLubyte *glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
+    printf("OpenGL Version: %s\n", glVersion);
+    printf("GLSL   Version: %s\n", glslVersion);
+
+    GLint maxTextureUnits, maxTextureSize;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+    printf("Max Texture Units: %d\n", maxTextureUnits);
+    printf("Max Texture Size (width/height): %d\n", maxTextureSize);
+
+    GLint maxIndexListVertices, maxIndexListCount;
+    glGetIntegerv(GL_MAX_ELEMENTS_VERTICES, &maxIndexListVertices);
+    glGetIntegerv(GL_MAX_ELEMENTS_INDICES, &maxIndexListCount);
+    printf("Max IndexList Vertices: %d\n", maxIndexListVertices);
+    printf("Max IndexList Count: %d\n", maxIndexListCount);
 }
