@@ -180,17 +180,16 @@ int main()
 
         // be sure to activate shader when setting uniforms/drawing objects
         lightingShader.use();
-        lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+
+        // 壁描画
+        lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
         lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
         lightingShader.setVec3("lightPos", lightPos);
-
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         lightingShader.setMat4("projection", projection);
         lightingShader.setMat4("view", view);
-
-        // 壁描画
         for (int j = 0; j < h; j++)
         {
             for (int i = 0; i < w; i++)
@@ -210,6 +209,7 @@ int main()
         }
 
         // ゴール描画
+        lightingShader.setVec3("objectColor", 1.0f, 1.0f, 0.0f);
         glm::vec3 modelPos(the_goal.x * -1.0f, 0.0f, the_goal.y * -1.0f);
         modelPos.y = -0.5f;
         glm::mat4 model = glm::mat4(1.0f);
