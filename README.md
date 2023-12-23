@@ -1,5 +1,4 @@
-macOS C++ OpenGL template project.
-Base on [LearnOpenGL by Joey de Vries](https://learnopengl.com/About).
+# Random 3D Maze
 
 # Dependencies
 
@@ -20,3 +19,10 @@ $ brew install glm
 ```
 $ make
 ```
+
+# Credits
+
+Thanks to
+
+- Joey de Vries for [LearnOpenGL](https://learnopengl.com/About)
+- tsukatomo for the [maze generator](https://trap.jp/post/472/)
