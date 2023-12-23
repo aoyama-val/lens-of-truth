@@ -33,13 +33,29 @@ float lastFrame = 0.0f;
 // lighting
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
-float modelAngle = 0.0f;
-glm::vec3 modelPos(0.0f, 0.0f, -80.0f);
-glm::vec3 modelPosInit(0.0f, 0.0f, -80.0f);
-int modelSide = 0;
+const int MAZE_X_LEN = 10;
+const int MAZE_Z_LEN = 10;
+int maze[MAZE_Z_LEN][MAZE_X_LEN];
+
+void initMaze()
+{
+    for (int zi = 0; zi < MAZE_Z_LEN; zi++) {
+        for (int xi = 0; xi < MAZE_X_LEN; xi++) {
+            if (zi == MAZE_Z_LEN - 1 || xi == 0 || xi == MAZE_Z_LEN - 1) {
+                // 外周に壁を配置
+                maze[zi][xi] = 1;
+            } else {
+                double r = rand() / ((double)RAND_MAX + 1);
+                maze[zi][xi] = r < 0.2 ? 1 : 0;
+            }
+        }
+    }
+}
 
 int main()
 {
+    initMaze();
+
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -62,7 +78,7 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    // glfwSetCursorPosCallback(window, mouse_callback);
+     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
     // tell GLFW to capture our mouse
@@ -163,17 +179,6 @@ int main()
         // input
         // -----
         processInput(window);
-        modelPos.z += 0.5;
-        if (modelSide == 1) {
-            modelPos.x += 0.01;
-        } else {
-            modelPos.x -= 0.01;
-        }
-        if (modelPos.z > 2.0) {
-            modelPos = modelPosInit;
-            modelSide = (modelSide + 1) % 2;
-        }
-        modelAngle += 6.0f;
 
         // render
         // ------
@@ -192,15 +197,23 @@ int main()
         lightingShader.setMat4("projection", projection);
         lightingShader.setMat4("view", view);
 
-        // world transformation
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, modelPos);
-        model = glm::rotate(model, glm::radians(modelAngle), glm::vec3(1.0f, 0.0f, 1.0f));
-        lightingShader.setMat4("model", model);
+        for (int zi = 0; zi < MAZE_Z_LEN; zi++)
+        {
+            for (int xi = 0; xi < MAZE_X_LEN; xi++)
+            {
+                if (maze[zi][xi] == 1) {
+                    // world transformation
+                    glm::vec3 modelPos(xi * 1.0f, 0.0f, zi * -1.0f);
+                    glm::mat4 model = glm::mat4(1.0f);
+                    model = glm::translate(model, modelPos);
+                    lightingShader.setMat4("model", model);
 
-        // render the cube
-        glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+                    // render the cube
+                    glBindVertexArray(cubeVAO);
+                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                }
+            }
+        }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
