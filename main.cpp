@@ -29,6 +29,7 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), 180.0f);
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
+bool isTruthEyeEnabled = false;
 
 // timing
 float deltaTime = 0.0f;	
@@ -225,7 +226,7 @@ int main()
         }
         }
 
-        if (1) {
+        if (isTruthEyeEnabled) {
             stencilShader.use();
             glStencilFunc(GL_ALWAYS, 1, 0xFF);
             glStencilMask(0x01);
@@ -242,19 +243,29 @@ int main()
             glm::mat4 model = glm::mat4(1.0f);
             lightingShader.setMat4("model", model);
 
-            // render the cube
+            // ステンシルバッファが1になる領域を描画
             glBindVertexArray(cubeVAO);
             glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        }
+            // 半透明の紫を描画
+            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+            glStencilMask(0x00); // 0x00: ステンシルバッファに書き込まない。0xFF: 書き込む
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+            glDepthMask(GL_FALSE);
+            glm::mat4 projection2 = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f);
+            lightingShader.setMat4("projection", projection2);
+            glBindVertexArray(cubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        // ゴール描画
             // 後続のステンシル処理を指定
             glStencilFunc(GL_EQUAL, 1, 0xFF);
             glStencilMask(0x00); // 0x00: ステンシルバッファに書き込まない。0xFF: 書き込む
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
             glDepthMask(GL_TRUE);
             glEnable(GL_DEPTH_TEST);
+        }
+
+        // ゴール描画
         lightingShader.use();
         lightingShader.setVec3("objectColor", 1.0f, 1.0f, 0.0f);
         glm::vec3 modelPos(the_goal.x * -1.0f, 0.0f, the_goal.y * -1.0f);
@@ -301,6 +312,10 @@ void processInput(GLFWwindow *window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        isTruthEyeEnabled = true;
+    else
+        isTruthEyeEnabled = false;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
