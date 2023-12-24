@@ -49,7 +49,7 @@ int main()
     show_meiro(w, h, the_start, the_goal);
 
     // カメラ初期位置
-    camera.Position = glm::vec3(-1.0f * the_start.x, 0.0f, -1.0f * the_start.y);
+    // camera.Position = glm::vec3(-1.0f * the_start.x, 0.0f, -1.0f * the_start.y);
 
     // glfw: initialize and configure
     // ------------------------------
@@ -181,10 +181,32 @@ int main()
         // render
         // ------
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearStencil(0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // be sure to activate shader when setting uniforms/drawing objects
         lightingShader.use();
+
+        {
+            glDisable(GL_LIGHTING);
+            glEnable(GL_STENCIL_TEST);
+            glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+            glStencilFunc(GL_ALWAYS, 1, ~0);
+            glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+
+            glm::vec3 modelPos(0.0f, 0.5f, 0.0f);
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, modelPos);
+            lightingShader.setMat4("model", model);
+
+            // render the cube
+            glBindVertexArray(cubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+
+            glEnable(GL_LIGHTING);
+            glDisable(GL_STENCIL_TEST);
+            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        }
 
         // 壁描画
         lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
