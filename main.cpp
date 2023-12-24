@@ -193,12 +193,11 @@ int main()
         // be sure to activate shader when setting uniforms/drawing objects
         lightingShader.use();
 
-        // 壁（ステンシルテスト無関係）
+        // 壁描画
         {
-            glStencilFunc(GL_ALWAYS, 0, 0xFF); // GL_ALWAYS: ステンシルテストを常に成功させる
+            glStencilFunc(GL_ALWAYS, 0, 0xFF); // GL_ALWAYS: ステンシルテストを常に成功させる（ステンシルバッファの状態に無関係に常に描画）
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // GL_KEEP: ステンシルバッファに書き込まない
 
-            // 壁描画
             lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
             lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
             lightingShader.setVec3("lightPos", lightPos);
@@ -227,12 +226,12 @@ int main()
         }
 
         if (isTruthEyeEnabled) {
-            // ステンシルバッファに1を書き込み
+            // メガネの内側の領域にステンシルバッファ1を書き込み
             {
                 stencilShader.use(); // 色は透明でステンシルバッファにだけ書き込ませるため
-                glStencilFunc(GL_ALWAYS, 1, 0xFF); // ステンシルテストを常に成功させる
                 glDepthMask(GL_FALSE); // デプスバッファには書き込まない
-                glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); // GL_REPLACE: glStencilFunc で指定されたステンシル バッファー値を ref に設定します。
+                glStencilFunc(GL_ALWAYS, 1, 0xFF); // ステンシルテストを常に成功させる
+                glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); // GL_REPLACE: glStencilFunc 関数で指定した ref（第2引数）の値に書き換える
 
                 glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
                 lightingShader.setMat4("projection", projection);
@@ -249,31 +248,33 @@ int main()
             }
 
             // 半透明の紫を描画
-            outsideGlassesShader.use();
-            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // GL_KEEP: ステンシルバッファに書き込まない
+            {
+                outsideGlassesShader.use();
+                glDepthMask(GL_FALSE); // デプスバッファには書き込まない
+                glStencilFunc(GL_NOTEQUAL, 1, 0xFF); // ステンシルバッファが1でないところにだけ描画
+                glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // GL_KEEP: ステンシルバッファに書き込まない
 
-            glm::mat4 projection2 = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f);
-            lightingShader.setMat4("projection", projection2);
+                glm::mat4 projection2 = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f);
+                lightingShader.setMat4("projection", projection2);
 
-            glm::mat4 view2 = glm::mat4(1.0f);
-            lightingShader.setMat4("view", view2);
+                glm::mat4 view2 = glm::mat4(1.0f);
+                lightingShader.setMat4("view", view2);
 
-            glm::mat4 model2 = glm::mat4(1.0f);
-            lightingShader.setMat4("model", model2);
+                glm::mat4 model2 = glm::mat4(1.0f);
+                lightingShader.setMat4("model", model2);
 
-            glBindVertexArray(cubeVAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-
-            // 後続のステンシル処理を指定
-            glStencilFunc(GL_EQUAL, 1, 0xFF);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // GL_KEEP: ステンシルバッファに書き込まない
-            glDepthMask(GL_TRUE);
+                glBindVertexArray(cubeVAO);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+            }
         }
 
         // ゴール描画
         if (isTruthEyeEnabled) {
             lightingShader.use();
+            glDepthMask(GL_TRUE); // 普通のオブジェクトなので、デプスバッファに書き込む
+            glStencilFunc(GL_EQUAL, 1, 0xFF); // ステンシルバッファが1のところにだけ描画
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // GL_KEEP: ステンシルバッファに書き込まない
+
             lightingShader.setVec3("objectColor", 1.0f, 1.0f, 0.0f);
             glm::vec3 modelPos(the_goal.x * -1.0f, 0.0f, the_goal.y * -1.0f);
             modelPos.y = -0.5f;
