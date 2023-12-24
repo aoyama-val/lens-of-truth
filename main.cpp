@@ -168,6 +168,7 @@ int main()
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
+            glEnable(GL_STENCIL_TEST);
 
     // render loop
     // -----------
@@ -192,8 +193,9 @@ int main()
         lightingShader.use();
 
         if(1) {
-            glDisable(GL_STENCIL_TEST);
+            glStencilFunc(GL_ALWAYS, 0, 0xFF);
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+            glStencilMask(0x00); // 0x00: ステンシルバッファに書き込まない。0xFF: 書き込む
 
         // 壁描画
         lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
@@ -225,11 +227,11 @@ int main()
 
         if (1) {
             stencilShader.use();
-            glDisable(GL_STENCIL_TEST);
             glStencilFunc(GL_ALWAYS, 1, 0xFF);
-            glStencilMask(0xFF);
+            glStencilMask(0x01);
             glDepthMask(GL_FALSE);
-            glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+            glDisable(GL_DEPTH_TEST);
+            glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE); // GL_REPLACE: glStencilFunc で指定されたステンシル バッファー値を ref に設定します。
 
             glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
             lightingShader.setMat4("projection", projection);
@@ -244,15 +246,15 @@ int main()
             glBindVertexArray(cubeVAO);
             glDrawArrays(GL_TRIANGLES, 0, 36);
 
+        }
+
+        // ゴール描画
             // 後続のステンシル処理を指定
-            glEnable(GL_STENCIL_TEST);
             glStencilFunc(GL_EQUAL, 1, 0xFF);
             glStencilMask(0x00); // 0x00: ステンシルバッファに書き込まない。0xFF: 書き込む
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
             glDepthMask(GL_TRUE);
-        }
-
-        // ゴール描画
+            glEnable(GL_DEPTH_TEST);
         lightingShader.use();
         lightingShader.setVec3("objectColor", 1.0f, 1.0f, 0.0f);
         glm::vec3 modelPos(the_goal.x * -1.0f, 0.0f, the_goal.y * -1.0f);
