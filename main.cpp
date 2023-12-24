@@ -208,7 +208,7 @@ int main()
         {
             for (int i = 0; i < w; i++)
             {
-                if (meiro[i][j] == 1 || j == 0 && i == 0) {
+                if (meiro[i][j] == 1) {
                     // world transformation
                     glm::vec3 modelPos(i * -1.0f, 0.0f, j * -1.0f);
                     glm::mat4 model = glm::mat4(1.0f);
@@ -225,6 +225,7 @@ int main()
 
         if (1) {
             stencilShader.use();
+            glDisable(GL_STENCIL_TEST);
             glStencilFunc(GL_ALWAYS, 1, 0xFF);
             glStencilMask(0xFF);
             glDepthMask(GL_FALSE);
@@ -247,6 +248,7 @@ int main()
             glEnable(GL_STENCIL_TEST);
             glStencilFunc(GL_EQUAL, 1, 0xFF);
             glStencilMask(0x00); // 0x00: ステンシルバッファに書き込まない。0xFF: 書き込む
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
             glDepthMask(GL_TRUE);
         }
 
