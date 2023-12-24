@@ -29,7 +29,7 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), 180.0f);
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
-bool isTruthEyeEnabled = false;
+bool isTruthLensEnabled = false;
 
 // timing
 float deltaTime = 0.0f;	
@@ -224,7 +224,7 @@ int main()
             }
         }
 
-        if (isTruthEyeEnabled) {
+        if (isTruthLensEnabled) {
             outsideGlassesShader.use();
 
             glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f); // 正射影（平行投影）に変更
@@ -264,7 +264,7 @@ int main()
         }
 
         // ゴール描画
-        if (isTruthEyeEnabled) {
+        if (isTruthLensEnabled) {
             lightingShader.use();
             glDepthMask(GL_TRUE); // 普通のオブジェクトなので、デプスバッファに書き込む
             glStencilFunc(GL_EQUAL, 1, 0xFF); // ステンシルバッファが1のところにだけ描画
@@ -317,9 +317,9 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        isTruthEyeEnabled = true;
+        isTruthLensEnabled = true;
     else
-        isTruthEyeEnabled = false;
+        isTruthLensEnabled = false;
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
