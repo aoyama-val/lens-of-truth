@@ -51,7 +51,6 @@ int main()
 
     // カメラ初期位置
     camera.Position = glm::vec3(-1.0f * the_start.x, 0.0f, -1.0f * the_start.y);
-    camera.Position = glm::vec3(-1.0f * the_goal.x, 0.0f, -1.0f * the_goal.y);
 
     // glfw: initialize and configure
     // ------------------------------
