@@ -96,6 +96,7 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -169,8 +170,6 @@ int main()
     glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-            glEnable(GL_STENCIL_TEST);
 
     // render loop
     // -----------
