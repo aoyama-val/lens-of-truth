@@ -193,57 +193,60 @@ int main()
         // be sure to activate shader when setting uniforms/drawing objects
         lightingShader.use();
 
-        if(1) {
-            glStencilFunc(GL_ALWAYS, 0, 0xFF);
+        // 壁（ステンシルテスト無関係）
+        {
+            glStencilFunc(GL_ALWAYS, 0, 0xFF); // GL_ALWAYS: ステンシルテストを常に成功させる
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // GL_KEEP: ステンシルバッファに書き込まない
 
-        // 壁描画
-        lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
-        lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-        lightingShader.setVec3("lightPos", lightPos);
-        // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        lightingShader.setMat4("projection", projection);
-        lightingShader.setMat4("view", view);
-        for (int j = 0; j < h; j++)
-        {
-            for (int i = 0; i < w; i++)
+            // 壁描画
+            lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
+            lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+            lightingShader.setVec3("lightPos", lightPos);
+            // view/projection transformations
+            glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+            glm::mat4 view = camera.GetViewMatrix();
+            lightingShader.setMat4("projection", projection);
+            lightingShader.setMat4("view", view);
+            for (int j = 0; j < h; j++)
             {
-                if (meiro[i][j] == 1) {
-                    // world transformation
-                    glm::vec3 modelPos(i * -1.0f, 0.0f, j * -1.0f);
-                    glm::mat4 model = glm::mat4(1.0f);
-                    model = glm::translate(model, modelPos);
-                    lightingShader.setMat4("model", model);
+                for (int i = 0; i < w; i++)
+                {
+                    if (meiro[i][j] == 1) {
+                        // world transformation
+                        glm::vec3 modelPos(i * -1.0f, 0.0f, j * -1.0f);
+                        glm::mat4 model = glm::mat4(1.0f);
+                        model = glm::translate(model, modelPos);
+                        lightingShader.setMat4("model", model);
 
-                    // render the cube
-                    glBindVertexArray(cubeVAO);
-                    glDrawArrays(GL_TRIANGLES, 0, 36);
+                        // render the cube
+                        glBindVertexArray(cubeVAO);
+                        glDrawArrays(GL_TRIANGLES, 0, 36);
+                    }
                 }
             }
         }
-        }
 
         if (isTruthEyeEnabled) {
-            stencilShader.use();
-            glStencilFunc(GL_ALWAYS, 1, 0xFF);
-            glDepthMask(GL_FALSE);
-            glDisable(GL_DEPTH_TEST);
-            glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE); // GL_REPLACE: glStencilFunc で指定されたステンシル バッファー値を ref に設定します。
+            // ステンシルバッファに1を書き込み
+            {
+                stencilShader.use(); // 色は透明でステンシルバッファにだけ書き込ませるため
+                glStencilFunc(GL_ALWAYS, 1, 0xFF); // ステンシルテストを常に成功させる
+                glDepthMask(GL_FALSE); // デプスバッファには書き込まない
+                glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); // GL_REPLACE: glStencilFunc で指定されたステンシル バッファー値を ref に設定します。
 
-            glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
-            lightingShader.setMat4("projection", projection);
+                glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
+                lightingShader.setMat4("projection", projection);
 
-            glm::mat4 view = glm::mat4(1.0f);
-            lightingShader.setMat4("view", view);
+                glm::mat4 view = glm::mat4(1.0f);
+                lightingShader.setMat4("view", view);
 
-            glm::mat4 model = glm::mat4(1.0f);
-            lightingShader.setMat4("model", model);
+                glm::mat4 model = glm::mat4(1.0f);
+                lightingShader.setMat4("model", model);
 
-            // ステンシルバッファが1になる領域を描画
-            glBindVertexArray(cubeVAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+                // ステンシルバッファが1になる領域を描画
+                glBindVertexArray(cubeVAO);
+                glDrawArrays(GL_TRIANGLES, 0, 36);
+            }
 
             // 半透明の紫を描画
             outsideGlassesShader.use();
@@ -266,7 +269,6 @@ int main()
             glStencilFunc(GL_EQUAL, 1, 0xFF);
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // GL_KEEP: ステンシルバッファに書き込まない
             glDepthMask(GL_TRUE);
-            glEnable(GL_DEPTH_TEST);
         }
 
         // ゴール描画
