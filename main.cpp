@@ -51,6 +51,7 @@ int main()
 
     // カメラ初期位置
     camera.Position = glm::vec3(-1.0f * the_start.x, 0.0f, -1.0f * the_start.y);
+    // camera.Position = glm::vec3(-1.0f * the_goal.x, 0.0f, -1.0f * the_goal.y);
 
     // glfw: initialize and configure
     // ------------------------------
@@ -102,7 +103,6 @@ int main()
     // build and compile our shader zprogram
     // ------------------------------------
     Shader lightingShader("basic_lighting.vs", "basic_lighting.fs");
-    Shader stencilShader("basic_lighting.vs", "stencil.fs");
     Shader outsideGlassesShader("basic_lighting.vs", "outside_glasses.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
@@ -225,21 +225,23 @@ int main()
         }
 
         if (isTruthEyeEnabled) {
+            outsideGlassesShader.use();
+
+            glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f); // 正射影（平行投影）に変更
+            outsideGlassesShader.setMat4("projection", projection);
+
+            glm::mat4 view = glm::mat4(1.0f);
+            outsideGlassesShader.setMat4("view", view);
+
+            glm::mat4 model = glm::mat4(1.0f);
+            outsideGlassesShader.setMat4("model", model);
+
             // メガネの内側の領域にステンシルバッファ1を書き込み
             {
-                stencilShader.use(); // 色は透明でステンシルバッファにだけ書き込ませるため
+                glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); // カラーバッファに書き込まない
                 glDepthMask(GL_FALSE); // デプスバッファには書き込まない
                 glStencilFunc(GL_ALWAYS, 1, 0xFF); // ステンシルテストを常に成功させる
                 glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE); // GL_REPLACE: glStencilFunc 関数で指定した ref（第2引数）の値に書き換える
-
-                glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
-                lightingShader.setMat4("projection", projection);
-
-                glm::mat4 view = glm::mat4(1.0f);
-                lightingShader.setMat4("view", view);
-
-                glm::mat4 model = glm::mat4(1.0f);
-                lightingShader.setMat4("model", model);
 
                 // ステンシルバッファが1になる領域を描画
                 glBindVertexArray(cubeVAO);
@@ -248,19 +250,13 @@ int main()
 
             // 半透明の紫を描画
             {
-                outsideGlassesShader.use();
+                glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE); // 通常通り、カラーバッファに書き込む
                 glDepthMask(GL_FALSE); // デプスバッファには書き込まない
                 glStencilFunc(GL_NOTEQUAL, 1, 0xFF); // ステンシルバッファが1でないところにだけ描画
                 glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // GL_KEEP: ステンシルバッファに書き込まない
 
-                glm::mat4 projection2 = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f);
-                lightingShader.setMat4("projection", projection2);
-
-                glm::mat4 view2 = glm::mat4(1.0f);
-                lightingShader.setMat4("view", view2);
-
-                glm::mat4 model2 = glm::mat4(1.0f);
-                lightingShader.setMat4("model", model2);
+                glm::mat4 model = glm::scale(glm::mat4(1.0f), glm::vec3(2.0f, 2.0f, 2.0f));
+                outsideGlassesShader.setMat4("model", model);
 
                 glBindVertexArray(cubeVAO);
                 glDrawArrays(GL_TRIANGLES, 0, 36);
