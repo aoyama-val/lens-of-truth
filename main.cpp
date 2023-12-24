@@ -94,10 +94,14 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // build and compile our shader zprogram
     // ------------------------------------
     Shader lightingShader("basic_lighting.vs", "basic_lighting.fs");
+    Shader stencilShader("basic_lighting.vs", "stencil.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -182,20 +186,19 @@ int main()
         // render
         // ------
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        // glClearStencil(0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        // be sure to activate shader when setting uniforms/drawing objects
-        lightingShader.use();
-
         if (1) {
+            stencilShader.use();
             // glDisable(GL_LIGHTING);
             // glDisable(GL_STENCIL_TEST);
             // glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-            // glStencilFunc(GL_ALWAYS, 1, 0xFF);
-            // glStencilMask(0xFF);
+            // glDisable(GL_STENCIL_TEST);
+            glStencilFunc(GL_ALWAYS, 1, 0xFF);
+            glStencilMask(0xFF);
+            glDepthMask(GL_FALSE);
             // glStencilFunc(GL_ALWAYS, 1, ~0);
-            // glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+            glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
 
         // lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
         // lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
@@ -217,14 +220,20 @@ int main()
             glBindVertexArray(cubeVAO);
             glDrawArrays(GL_TRIANGLES, 0, 36);
 
-            // glEnable(GL_LIGHTING);
-            // glEnable(GL_STENCIL_TEST);
+        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             // glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-            // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-            // glStencilMask(0x00);
+            // glStencilFunc(GL_LEQUAL, 1, 0xFF);
+            glStencilFunc(GL_EQUAL, 1, 0xFF);
+            // glStencilFunc(GL_ALWAYS, 1, 0xFF);
+            glStencilMask(0x00); // 0x00: ステンシルバッファに書き込まない。0xFF: 書き込む
+            // glDisable(GL_DEPTH_TEST);
+            glDepthMask(GL_TRUE);
         }
 
-        if(0) {
+        // be sure to activate shader when setting uniforms/drawing objects
+        lightingShader.use();
+
+        if(1) {
         // 壁描画
         lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
         lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
