@@ -25,7 +25,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f);
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), 180.0f);
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -49,7 +49,8 @@ int main()
     show_meiro(w, h, the_start, the_goal);
 
     // カメラ初期位置
-    // camera.Position = glm::vec3(-1.0f * the_start.x, 0.0f, -1.0f * the_start.y);
+    camera.Position = glm::vec3(-1.0f * the_start.x, 0.0f, -1.0f * the_start.y);
+    camera.Position = glm::vec3(-1.0f * the_goal.x, 0.0f, -1.0f * the_goal.y);
 
     // glfw: initialize and configure
     // ------------------------------
@@ -94,7 +95,6 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_STENCIL_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -188,52 +188,13 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-        if (1) {
-            stencilShader.use();
-            // glDisable(GL_LIGHTING);
-            // glDisable(GL_STENCIL_TEST);
-            // glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-            // glDisable(GL_STENCIL_TEST);
-            glStencilFunc(GL_ALWAYS, 1, 0xFF);
-            glStencilMask(0xFF);
-            glDepthMask(GL_FALSE);
-            // glStencilFunc(GL_ALWAYS, 1, ~0);
-            glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
-
-        // lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
-        // lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-        // lightingShader.setVec3("lightPos", lightPos);
-
-            glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
-            lightingShader.setMat4("projection", projection);
-
-            glm::mat4 view = glm::mat4(1.0f);
-            lightingShader.setMat4("view", view);
-
-            // glm::vec3 modelPos(0.5f, 0.5f, -1.0f);
-            glm::mat4 model = glm::mat4(1.0f);
-            // model = glm::scale(model, glm::vec3(100.0f));
-            // model = glm::translate(model, modelPos);
-            lightingShader.setMat4("model", model);
-
-            // render the cube
-            glBindVertexArray(cubeVAO);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-
-        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            // glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-            // glStencilFunc(GL_LEQUAL, 1, 0xFF);
-            glStencilFunc(GL_EQUAL, 1, 0xFF);
-            // glStencilFunc(GL_ALWAYS, 1, 0xFF);
-            glStencilMask(0x00); // 0x00: ステンシルバッファに書き込まない。0xFF: 書き込む
-            // glDisable(GL_DEPTH_TEST);
-            glDepthMask(GL_TRUE);
-        }
-
         // be sure to activate shader when setting uniforms/drawing objects
         lightingShader.use();
 
         if(1) {
+            glDisable(GL_STENCIL_TEST);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
         // 壁描画
         lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
         lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
@@ -262,7 +223,35 @@ int main()
         }
         }
 
+        if (1) {
+            stencilShader.use();
+            glStencilFunc(GL_ALWAYS, 1, 0xFF);
+            glStencilMask(0xFF);
+            glDepthMask(GL_FALSE);
+            glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+
+            glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
+            lightingShader.setMat4("projection", projection);
+
+            glm::mat4 view = glm::mat4(1.0f);
+            lightingShader.setMat4("view", view);
+
+            glm::mat4 model = glm::mat4(1.0f);
+            lightingShader.setMat4("model", model);
+
+            // render the cube
+            glBindVertexArray(cubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+
+            // 後続のステンシル処理を指定
+            glEnable(GL_STENCIL_TEST);
+            glStencilFunc(GL_EQUAL, 1, 0xFF);
+            glStencilMask(0x00); // 0x00: ステンシルバッファに書き込まない。0xFF: 書き込む
+            glDepthMask(GL_TRUE);
+        }
+
         // ゴール描画
+        lightingShader.use();
         lightingShader.setVec3("objectColor", 1.0f, 1.0f, 0.0f);
         glm::vec3 modelPos(the_goal.x * -1.0f, 0.0f, the_goal.y * -1.0f);
         modelPos.y = -0.5f;
@@ -270,6 +259,10 @@ int main()
         model = glm::translate(model, modelPos);
         model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
         lightingShader.setMat4("model", model);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 view = camera.GetViewMatrix();
+        lightingShader.setMat4("projection", projection);
+        lightingShader.setMat4("view", view);
 
         // render the cube
         glBindVertexArray(cubeVAO);
