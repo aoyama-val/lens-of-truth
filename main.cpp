@@ -103,6 +103,7 @@ int main()
     // ------------------------------------
     Shader lightingShader("basic_lighting.vs", "basic_lighting.fs");
     Shader stencilShader("basic_lighting.vs", "stencil.fs");
+    Shader outsideGlassesShader("basic_lighting.vs", "outside_glasses.fs");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -248,12 +249,21 @@ int main()
             glDrawArrays(GL_TRIANGLES, 0, 36);
 
             // 半透明の紫を描画
+            outsideGlassesShader.use();
+            // glEnable(GL_STENCIL_TEST);
             glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
             glStencilMask(0x00); // 0x00: ステンシルバッファに書き込まない。0xFF: 書き込む
             glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-            glDepthMask(GL_FALSE);
+
             glm::mat4 projection2 = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f);
             lightingShader.setMat4("projection", projection2);
+
+            glm::mat4 view2 = glm::mat4(1.0f);
+            lightingShader.setMat4("view", view2);
+
+            glm::mat4 model2 = glm::mat4(1.0f);
+            lightingShader.setMat4("model", model2);
+
             glBindVertexArray(cubeVAO);
             glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -266,22 +276,24 @@ int main()
         }
 
         // ゴール描画
-        lightingShader.use();
-        lightingShader.setVec3("objectColor", 1.0f, 1.0f, 0.0f);
-        glm::vec3 modelPos(the_goal.x * -1.0f, 0.0f, the_goal.y * -1.0f);
-        modelPos.y = -0.5f;
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, modelPos);
-        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-        lightingShader.setMat4("model", model);
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        lightingShader.setMat4("projection", projection);
-        lightingShader.setMat4("view", view);
+        if (isTruthEyeEnabled) {
+            lightingShader.use();
+            lightingShader.setVec3("objectColor", 1.0f, 1.0f, 0.0f);
+            glm::vec3 modelPos(the_goal.x * -1.0f, 0.0f, the_goal.y * -1.0f);
+            modelPos.y = -0.5f;
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, modelPos);
+            model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+            lightingShader.setMat4("model", model);
+            glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+            glm::mat4 view = camera.GetViewMatrix();
+            lightingShader.setMat4("projection", projection);
+            lightingShader.setMat4("view", view);
 
-        // render the cube
-        glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+            // render the cube
+            glBindVertexArray(cubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
