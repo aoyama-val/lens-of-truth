@@ -25,7 +25,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), 180.0f);
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f);
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -57,6 +57,7 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
 
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -181,33 +182,49 @@ int main()
         // render
         // ------
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClearStencil(0);
+        // glClearStencil(0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // be sure to activate shader when setting uniforms/drawing objects
         lightingShader.use();
 
-        {
-            glDisable(GL_LIGHTING);
-            glEnable(GL_STENCIL_TEST);
-            glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-            glStencilFunc(GL_ALWAYS, 1, ~0);
-            glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+        if (1) {
+            // glDisable(GL_LIGHTING);
+            // glDisable(GL_STENCIL_TEST);
+            // glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+            // glStencilFunc(GL_ALWAYS, 1, 0xFF);
+            // glStencilMask(0xFF);
+            // glStencilFunc(GL_ALWAYS, 1, ~0);
+            // glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
 
-            glm::vec3 modelPos(0.0f, 0.5f, 0.0f);
+        // lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
+        // lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+        // lightingShader.setVec3("lightPos", lightPos);
+
+            glm::mat4 projection = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
+            lightingShader.setMat4("projection", projection);
+
+            glm::mat4 view = glm::mat4(1.0f);
+            lightingShader.setMat4("view", view);
+
+            // glm::vec3 modelPos(0.5f, 0.5f, -1.0f);
             glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, modelPos);
+            // model = glm::scale(model, glm::vec3(100.0f));
+            // model = glm::translate(model, modelPos);
             lightingShader.setMat4("model", model);
 
             // render the cube
             glBindVertexArray(cubeVAO);
             glDrawArrays(GL_TRIANGLES, 0, 36);
 
-            glEnable(GL_LIGHTING);
-            glDisable(GL_STENCIL_TEST);
-            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+            // glEnable(GL_LIGHTING);
+            // glEnable(GL_STENCIL_TEST);
+            // glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+            // glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+            // glStencilMask(0x00);
         }
 
+        if(0) {
         // 壁描画
         lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
         lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
@@ -221,7 +238,7 @@ int main()
         {
             for (int i = 0; i < w; i++)
             {
-                if (meiro[i][j] == 1) {
+                if (meiro[i][j] == 1 || j == 0 && i == 0) {
                     // world transformation
                     glm::vec3 modelPos(i * -1.0f, 0.0f, j * -1.0f);
                     glm::mat4 model = glm::mat4(1.0f);
@@ -233,6 +250,7 @@ int main()
                     glDrawArrays(GL_TRIANGLES, 0, 36);
                 }
             }
+        }
         }
 
         // ゴール描画
