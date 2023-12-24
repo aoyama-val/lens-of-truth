@@ -195,8 +195,7 @@ int main()
 
         if(1) {
             glStencilFunc(GL_ALWAYS, 0, 0xFF);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-            glStencilMask(0x00); // 0x00: ステンシルバッファに書き込まない。0xFF: 書き込む
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // GL_KEEP: ステンシルバッファに書き込まない
 
         // 壁描画
         lightingShader.setVec3("objectColor", 0.5f, 0.5f, 1.0f);
@@ -229,7 +228,6 @@ int main()
         if (isTruthEyeEnabled) {
             stencilShader.use();
             glStencilFunc(GL_ALWAYS, 1, 0xFF);
-            glStencilMask(0x01);
             glDepthMask(GL_FALSE);
             glDisable(GL_DEPTH_TEST);
             glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE); // GL_REPLACE: glStencilFunc で指定されたステンシル バッファー値を ref に設定します。
@@ -249,10 +247,8 @@ int main()
 
             // 半透明の紫を描画
             outsideGlassesShader.use();
-            // glEnable(GL_STENCIL_TEST);
             glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-            glStencilMask(0x00); // 0x00: ステンシルバッファに書き込まない。0xFF: 書き込む
-            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // GL_KEEP: ステンシルバッファに書き込まない
 
             glm::mat4 projection2 = glm::ortho(-0.5f, 0.5f, -0.5f, 0.5f);
             lightingShader.setMat4("projection", projection2);
@@ -268,8 +264,7 @@ int main()
 
             // 後続のステンシル処理を指定
             glStencilFunc(GL_EQUAL, 1, 0xFF);
-            glStencilMask(0x00); // 0x00: ステンシルバッファに書き込まない。0xFF: 書き込む
-            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP); // GL_KEEP: ステンシルバッファに書き込まない
             glDepthMask(GL_TRUE);
             glEnable(GL_DEPTH_TEST);
         }
